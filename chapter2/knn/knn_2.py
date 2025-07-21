@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import operator
 
 
@@ -44,7 +45,40 @@ def auto_norm(dataSet):
     return norm_data_set, range_vector, min_value_vector
 
 
-def dating_classify_test():
+def test_k_dating_classify():
+    """
+    测试算法中参数K对于预测错误率的影响
+    """
+    result = []
+    for k in range(1, 500):
+        result.append(dating_classify_test(k))
+
+    # 生成横坐标（下标从1开始）
+    x_values = [i + 1 for i in range(len(result))]
+
+    # 创建折线图
+    plt.figure(figsize=(10, 6))  # 设置图像大小（可选）
+    plt.plot(x_values, result, marker="o", linestyle="-", color="b", linewidth=2)
+
+    # 添加标题和标签
+    plt.title("Value Changes by Index", fontsize=14)
+    plt.xlabel("Index (starting from 1)", fontsize=12)
+    plt.ylabel("Value", fontsize=12)
+
+    # 设置横坐标刻度为整数
+    plt.xticks(x_values)
+
+    # 添加网格线
+    plt.grid(True, linestyle="--", alpha=0.7)
+
+    # 自动调整布局
+    plt.tight_layout()
+
+    # 显示图表
+    plt.show()
+
+
+def dating_classify_test(k):
     """
     KNN 算法性能测试
     """
@@ -59,14 +93,16 @@ def dating_classify_test():
     error_count = 0
     for index, i in enumerate(range(number_of_test)):
         class_of_knn_predicate = knn(
-            dataSet[i, :], dataSet[number_of_test:, :], labels, 20
+            dataSet[i, :], dataSet[number_of_test:, :], labels, k
         )
         print(
             f"TEST OF {index + 1}: The predicate result is {class_of_knn_predicate}; The real result is {labels[i]}"
         )
         if class_of_knn_predicate != labels[i]:
             error_count += 1
-    print(f"The total error rate is {error_count / number_of_test}")
+    error_rate = error_count / number_of_test
+    print(f"The total error rate is {error_rate}")
+    return error_rate
 
 
 def createDataSet():
@@ -102,4 +138,5 @@ def knn(inX, dataSet, labels, k):
 
 
 if __name__ == "__main__":
-    dating_classify_test()
+    dating_classify_test(20)
+    # test_k_dating_classify()
