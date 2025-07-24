@@ -104,27 +104,42 @@ def create_decision_tree(data_set, feature_labels):
 
 
 def classify(decision_tree, feature_labels, feature_vector):
+    """
+    利用决策树对数据进行分类
+    """
+    # 获取当前判断节点的节点标签
     root_feature_label = list(decision_tree.keys())[0]
+    # 获取当前标签的字典值
     sub_decision_tree = decision_tree[root_feature_label]
+    # 获取当前特征的索引值
     feature_index = feature_labels.index(root_feature_label)
+    # 遍历当前标签的所有取值，进入子节点
     for key in sub_decision_tree.keys():
         if feature_vector[feature_index] == key:
+            # 如果这条树枝指向的子节点仍然是一棵树，递归获取类型
             if type(sub_decision_tree[key]).__name__ == "dict":
                 class_label = classify(
                     sub_decision_tree[key], feature_labels, feature_vector
                 )
+            # 如果这条树枝指向的子节点是一个叶子节点，分类结束
             else:
                 class_label = sub_decision_tree[key]
     return class_label
 
 
 def store_decision_tree(decision_tree, filename):
+    """
+    本地化存储决策树
+    """
     fw = open(filename, "wb")
     pickle.dump(decision_tree, fw)
     fw.close()
 
 
 def load_decision_tree(filename):
+    """
+    从本地文件读取决策树
+    """
     fr = open(filename, "rb")
     return pickle.load(fr)
 
