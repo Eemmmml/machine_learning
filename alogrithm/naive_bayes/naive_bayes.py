@@ -175,12 +175,6 @@ def spam_test():
     print(f"The error rate is {err_count / 10 * 100}%")
 
 
-def test():
-    filename = "./email/ham/6.txt"
-    with open(filename) as email:
-        print(email.read())
-
-
 if __name__ == "__main__":
     # test_naive_bayes_classify()
     spam_test()
