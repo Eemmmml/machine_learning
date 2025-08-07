@@ -150,16 +150,70 @@ class OptStruct:
 
 
 def calculate_ek(opt_struct, k):
-    fxk = float(
-        np.multiply(opt_struct.alphas, opt_struct.label_vector).transpose()
-        * opt_struct.kernel_trans_results[:, k]
-        + opt_struct.b
-    )
-    ek = float(fxk - opt_struct.label_vector[k])
+    if opt_struct.ecache[k, 0] == 1:
+        ek = opt_struct.ecache[k, 1]
+    else:
+        fxk = float(
+            np.multiply(opt_struct.alphas, opt_struct.label_vector).transpose()
+            * opt_struct.kernel_trans_results[:, k]
+            + opt_struct.b
+        )
+        ek = float(fxk - opt_struct.label_vector[k])
     return ek
 
 
 def select_j(opt_struct, i, ei):
+    """
+    改进的启发式选择策略
+    :param opt_struct: 优化数据结构
+    :param i: 当前选择的alpha_i索引
+    :param ei: alpha_i对应的误差
+    :return: 最优的j索引和对应的误差ej
+    """
+    max_k = -1
+    max_delta_e = 0
+    ej = 0
+
+    # 优先检查非边界样本(0 < alpha < C)
+    non_bound_indices = [
+        k for k in range(opt_struct.m) if 0 < opt_struct.alphas[k] < opt_struct.c
+    ]
+
+    # 如果有非边界样本，优先在这些样本中选择
+    if len(non_bound_indices) > 1:
+        for k in non_bound_indices:
+            if k == i:
+                continue
+            ek = calculate_ek(opt_struct, k)
+            delta_e = abs(ei - ek)
+            if delta_e > max_delta_e:
+                max_k = k
+                max_delta_e = delta_e
+                ej = ek
+        if max_k != -1:
+            return max_k, ej
+
+    # 如果没有合适的非边界样本，检查整个数据集
+    for k in range(opt_struct.m):
+        if k == i:
+            continue
+        ek = calculate_ek(opt_struct, k)
+        delta_e = abs(ei - ek)
+        if delta_e > max_delta_e:
+            max_k = k
+            max_delta_e = delta_e
+            ej = ek
+
+    # 如果仍然没有找到合适的样本，使用随机选择
+    if max_k == -1:
+        j = select_j_rand(i, opt_struct.m)
+        ej = calculate_ek(opt_struct, j)
+        return j, ej
+
+    return max_k, ej
+
+
+def select_j_delete(opt_struct, i, ei):
     max_k = -1
     max_delta_ej = 0
     ej = 0
@@ -234,9 +288,6 @@ def innerl(opt_struct, i):
         opt_struct.alphas[i] = clip_alpha(
             opt_struct.alphas[i], upper_bound, lower_bound
         )
-        # 更新缓存
-        update_ecache(opt_struct, i)
-        update_ecache(opt_struct, j)
         # 计算迭代后的b值
         bi = (
             opt_struct.b
@@ -269,6 +320,9 @@ def innerl(opt_struct, i):
             opt_struct.b = bj
         else:
             opt_struct.b = (bi + bj) / 2
+        # 更新缓存
+        update_ecache(opt_struct, i)
+        update_ecache(opt_struct, j)
         return 1
     else:
         return 0
@@ -469,4 +523,4 @@ if __name__ == "__main__":
     # print("=====================================================================")
     # print("=====================================================================")
     # test_rbf(k1=2.0)
-    test_rbf(k1=1.3)
+    test_rbf(k1=1.22)
