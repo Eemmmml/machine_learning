@@ -180,7 +180,7 @@ def select_j(opt_struct, i, ei):
     ]
 
     # 如果有非边界样本，优先在这些样本中选择
-    if len(non_bound_indices) > 1:
+    if len(non_bound_indices) > 0:
         for k in non_bound_indices:
             if k == i:
                 continue
@@ -413,7 +413,7 @@ def classify(x, w, b):
 
 def test_rbf(k1=1.3):
     data_set, class_label = load_data_set("./testSetRBF.txt")
-    b, alphas = smo_p(data_set, class_label, 10, 0.0001, 10000, ("rbf", k1))
+    b, alphas = smo_p(data_set, class_label, 200, 0.0001, 10000, ("rbf", k1))
     sv_indexs = np.nonzero(alphas.A > 0)[0]
     data_matrix = np.asmatrix(data_set)
     label_vector = np.asmatrix(class_label).transpose()
@@ -450,6 +450,8 @@ def test_rbf(k1=1.3):
                 f"The result of predicted is {np.sign(predicted_result)} but the real result is {np.sign(label_vector[i])}"
             )
     print(f"The error rate of test is {error_count / m * 100}%")
+    print(alphas[alphas > 0])
+    print(b)
 
 
 if __name__ == "__main__":
@@ -523,4 +525,4 @@ if __name__ == "__main__":
     # print("=====================================================================")
     # print("=====================================================================")
     # test_rbf(k1=2.0)
-    test_rbf(k1=1.22)
+    test_rbf(k1=1.3)
