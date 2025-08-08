@@ -264,6 +264,7 @@ def smo(data_set, class_label, c, toler, max_iter_number=10000, k_tuple=("lin", 
                 )
         if entire_set:
             entire_set = False
+        # 这里一定是elif保证我们在遍历整个数据集后如果没有改变任何alpha值，就退出整个训练过程，因为此时算法已经收敛alphas已经确定了
         elif alphas_changed_number == 0:
             entire_set = True
     print("=================================================================")
