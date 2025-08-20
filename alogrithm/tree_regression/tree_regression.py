@@ -58,8 +58,8 @@ def choose_best_split_way(
     if len(set(data_matrix[:, -1].T.tolist()[0])) == 1:
         return None, leaf_type(data_matrix)
     # opt 中的两个值分别对应最小的集合大小和可以忽略的不纯度下降幅度的最大值
-    toler_n = opt[0]
-    toler_error = opt[1]
+    toler_n = opt[1]
+    toler_error = opt[0]
     # 初始化选取的特征和特征值，以及集合的不纯度
     best_error = np.inf
     best_feature_index = 0
@@ -133,7 +133,7 @@ def get_mean(regression_tree):
     return (regression_tree["left_tree"] + regression_tree["right_tree"]) / 2
 
 
-def purne(regression_tree, test_data_matrix):
+def prune(regression_tree, test_data_matrix):
     """
     对回归树进行剪枝
     regression_tree: 由训练集训练出的有些过拟合的回归树
@@ -152,12 +152,12 @@ def purne(regression_tree, test_data_matrix):
         )
         # 如果左子树不是叶节点，则对左子树进行剪枝
         if is_tree(regression_tree["left_tree"]):
-            regression_tree["left_tree"] = purne(
+            regression_tree["left_tree"] = prune(
                 regression_tree["left_tree"], left_test_data_matrix
             )
         # 如果右子树不是叶节点，则对右子树进行剪枝
         if is_tree(regression_tree["right_tree"]):
-            regression_tree["right_tree"] = purne(
+            regression_tree["right_tree"] = prune(
                 regression_tree["right_tree"], right_test_data_matrix
             )
     # 对于剪枝后(也有可能左右子树本身就是叶节点没有经过剪枝)
@@ -233,10 +233,12 @@ if __name__ == "__main__":
     filename = "./bikeSpeedVsIq_train.txt"
     data_matrix = np.asmatrix(load_data_set(filename))
     regression_tree = create_regression_tree(data_matrix, opt=(1, 20))
+    print(regression_tree)
     filename = "./bikeSpeedVsIq_test.txt"
     data_matrix = np.asmatrix(load_data_set(filename))
     y_hat = create_tree_evaluation(regression_tree, data_matrix[:, :-1])
+    print(y_hat)
     correlation_coefficient = np.corrcoef(y_hat.T, data_matrix[:, -1], rowvar=False)[
-        1, 0
+        0, 1
     ]
     print(correlation_coefficient)

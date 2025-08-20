@@ -23,6 +23,9 @@ def binary_split_data_set(data_matrix, feature_index, feature_value):
 
 
 def liner_regression(data_matrix, lam=0.3):
+    """
+    岭回归版本的线性回归，防止矩阵奇异问题
+    """
     m, n = np.shape(data_matrix)
     x = np.asmatrix(np.ones((m, n)))
     y = np.asmatrix(np.ones((m, 1)))
@@ -38,6 +41,22 @@ def liner_regression(data_matrix, lam=0.3):
         )
     w = demon.I * x.T * y
     return w, x, y
+
+
+# def liner_regression(data_matrix, lam=0.3):
+#     m, n = np.shape(data_matrix)
+#     x = np.asmatrix(np.ones((m, n)))
+#     y = np.asmatrix(np.ones((m, 1)))
+#     x[:, 1:n] = data_matrix[:, : n - 1]
+#     y = data_matrix[:, -1]
+#     x_t_x = x.T * x
+#     # demon = x_t_x + i * lam
+#     if np.linalg.det(x_t_x) == 0:
+#         raise NameError(
+#             "This matrix is singlar, cannot inverse.\nplease choose another opt."
+#         )
+#     w = x_t_x.I * x.T * y
+#     return w, x, y
 
 
 def liner_regression_error(data_matrix):
@@ -56,8 +75,8 @@ def choose_best_split_way(
         print("It is a leaf node, no need to split.")
         return None, leaf_type(data_matrix)[0]
     _, n = np.shape(data_matrix)
-    toler_n = opt[0]
-    toler_error = opt[1]
+    toler_n = opt[1]
+    toler_error = opt[0]
     best_error = np.inf
     best_feature_index = 0
     best_feature_value = 0
