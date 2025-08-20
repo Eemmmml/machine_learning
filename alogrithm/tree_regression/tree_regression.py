@@ -194,12 +194,49 @@ def purne(regression_tree, test_data_matrix):
         return regression_tree
 
 
+def regression_tree_evaluation(leaf_node, data_to_evaluation):
+    return float(leaf_node)
+
+
+def tree_fore_cast(
+    tree, data_to_evaluation, evaluation_type=regression_tree_evaluation
+):
+    if not is_tree(tree):
+        return evaluation_type(tree, data_to_evaluation)
+    if data_to_evaluation[tree["split_feature_index"]] > tree["split_feature_value"]:
+        if is_tree(tree["left_tree"]):
+            return tree_fore_cast(
+                tree["left_tree"], data_to_evaluation, evaluation_type
+            )
+        else:
+            return evaluation_type(tree["left_tree"], data_to_evaluation)
+    else:
+        if is_tree(tree["right_tree"]):
+            return tree_fore_cast(
+                tree["right_tree"], data_to_evaluation, evaluation_type
+            )
+        else:
+            return evaluation_type(tree["right_tree"], data_to_evaluation)
+
+
+def create_tree_evaluation(
+    tree, matrix_to_evaluation, evaluation_type=regression_tree_evaluation
+):
+    m, _ = np.shape(matrix_to_evaluation)
+    y_hat = np.asmatrix(np.ones((m, 1)))
+    for i in range(m):
+        y_hat[i, 0] = tree_fore_cast(tree, matrix_to_evaluation[i, :], evaluation_type)
+    return y_hat
+
+
 if __name__ == "__main__":
-    data_set = load_data_set("./ex2.txt")
-    data_matrix = np.asmatrix(data_set)
-    regression_tree = create_regression_tree(data_matrix, opt=(0, 1))
-    print(regression_tree)
-    test_data_set = load_data_set("./ex2test.txt")
-    test_data_matrix = np.asmatrix(test_data_set)
-    purned_regression_tree = purne(regression_tree, test_data_matrix)
-    print(purned_regression_tree)
+    filename = "./bikeSpeedVsIq_train.txt"
+    data_matrix = np.asmatrix(load_data_set(filename))
+    regression_tree = create_regression_tree(data_matrix, opt=(1, 20))
+    filename = "./bikeSpeedVsIq_test.txt"
+    data_matrix = np.asmatrix(load_data_set(filename))
+    y_hat = create_tree_evaluation(regression_tree, data_matrix[:, :-1])
+    correlation_coefficient = np.corrcoef(y_hat.T, data_matrix[:, -1], rowvar=False)[
+        1, 0
+    ]
+    print(correlation_coefficient)
